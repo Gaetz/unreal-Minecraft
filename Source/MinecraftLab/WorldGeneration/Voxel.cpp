@@ -59,14 +59,17 @@ void AVoxel::OnConstruction(const FTransform& Transform)
 void AVoxel::GenerateChunk()
 {
 	ChunkFields.SetNumUninitialized(ChunkTotalElements);
+	TArray<int32> Noise = ComputeChunkNoise();
+	
 	for(int32 x = 0; x < ChunkLineElements; ++x)
 	{
 		for(int32 y = 0; y < ChunkLineElements; ++y)
 		{
 			for(int32 z = 0; z < ChunkZElements; ++z)
 			{
-				int32 Index = x + y * ChunkLineElements + z * ChunkLineElementsP2;
-				ChunkFields[Index] = (z < 30) ? 1 : 0;
+				const int32 Index = x + y * ChunkLineElements + z * ChunkLineElementsP2;
+				
+				ChunkFields[Index] = (z < Noise[x + y * ChunkLineElements]) ? 1 : 0;
 			}
 		}
 	}
@@ -188,3 +191,26 @@ void AVoxel::UpdateProceduralMesh()
 	ProceduralMeshComponent->CreateMeshSection(0, Vertices, Triangles, Normals, UVs, VertexColors, Tangents, true);
 }
 
+TArray<int32> AVoxel::ComputeChunkNoise() const
+{
+	// Create and configure FastNoise object
+	FastNoiseLite NoiseGen;
+	NoiseGen.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+	
+	TArray<int32> Noise;
+	Noise.SetNum(ChunkLineElementsP2);
+	int32 Index { 0 };
+	for (int32 y = 0; y < ChunkLineElements; ++y)
+	{
+		const float NoiseY = (ChunkYIndex * ChunkLineElements + y) * YMult;
+		for (int32 x = 0; x < ChunkLineElements; ++x)
+		{
+			const float NoiseX = (ChunkXIndex * ChunkLineElements + x) * XMult;
+			float NoiseValue = NoiseGen.GetNoise(NoiseX, NoiseY) * 100;
+			NoiseValue *= Weight;
+			Noise[Index++] = FMath::Floor(NoiseValue);
+		}
+	}
+	
+	return Noise;
+}

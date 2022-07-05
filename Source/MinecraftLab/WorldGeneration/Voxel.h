@@ -80,4 +80,6 @@ public:
 
 	void GenerateChunk();
 	void UpdateProceduralMesh();
+	
+	TArray<int32> ComputeChunkNoise() const;
 };
