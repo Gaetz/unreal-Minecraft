@@ -69,7 +69,7 @@ void AVoxel::GenerateChunk()
 			{
 				const int32 Index = x + y * ChunkLineElements + z * ChunkLineElementsP2;
 				
-				ChunkFields[Index] = (z < Noise[x + y * ChunkLineElements]) ? 1 : 0;
+				ChunkFields[Index] = (BaseHeight + z < Noise[x + y * ChunkLineElements]) ? 1 : 0;
 			}
 		}
 	}
@@ -195,7 +195,7 @@ TArray<int32> AVoxel::ComputeChunkNoise() const
 {
 	// Create and configure FastNoise object
 	FastNoiseLite NoiseGen;
-	NoiseGen.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+	NoiseGen.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
 	
 	TArray<int32> Noise;
 	Noise.SetNum(ChunkLineElementsP2);

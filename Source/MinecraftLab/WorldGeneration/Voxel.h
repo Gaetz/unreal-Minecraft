@@ -46,6 +46,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Freq = 1;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float BaseHeight = -10;
+
 	UPROPERTY()
 	int32 ChunkTotalElements;
 
