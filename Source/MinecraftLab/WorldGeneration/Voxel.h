@@ -44,11 +44,35 @@ public:
 	float Weight = 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Weight2 = 1;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Weight3 = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Freq = 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float BaseHeight = -10;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ClampedMin = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ClampedMax = 4;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Resolution2Mult = 2;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Resolution3Mult = 4;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float IrregularityResolutionMult = 1;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float IrregularityMult = 10;
+	
 	UPROPERTY()
 	int32 ChunkTotalElements;
 

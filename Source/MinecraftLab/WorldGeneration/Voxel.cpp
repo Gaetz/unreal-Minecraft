@@ -206,9 +206,11 @@ TArray<int32> AVoxel::ComputeChunkNoise() const
 		for (int32 x = 0; x < ChunkLineElements; ++x)
 		{
 			const float NoiseX = (ChunkXIndex * ChunkLineElements + x) * XMult;
-			float NoiseValue = NoiseGen.GetNoise(NoiseX, NoiseY) * 100;
-			NoiseValue *= Weight;
-			Noise[Index++] = FMath::Floor(NoiseValue);
+			const float NoiseValue1 = NoiseGen.GetNoise(NoiseX, NoiseY) * Weight;
+			const float NoiseValue2 = NoiseGen.GetNoise(NoiseX * Resolution2Mult, NoiseY  * Resolution2Mult) * Weight2;
+			const float NoiseValue3 = NoiseGen.GetNoise(NoiseX * Resolution3Mult, NoiseY * Resolution3Mult) * Weight3;
+			const float NoiseValue4 = FMath::Clamp(NoiseGen.GetNoise(NoiseX * IrregularityResolutionMult, NoiseY * IrregularityResolutionMult) * Weight * IrregularityMult, ClampedMin, ClampedMax);
+			Noise[Index++] = FMath::Floor(NoiseValue1 + NoiseValue2 + NoiseValue3 + NoiseValue4);
 		}
 	}
 	
