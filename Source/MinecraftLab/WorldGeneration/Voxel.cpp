@@ -68,8 +68,12 @@ void AVoxel::GenerateChunk()
 			for(int32 z = 0; z < ChunkZElements; ++z)
 			{
 				const int32 Index = x + y * ChunkLineElements + z * ChunkLineElementsP2;
+				// Bug sur le choix du material, vérifier
+				if (BaseHeight + z == Noise[x + y * ChunkLineElements]) ChunkFields[Index] = 1;
+				else if (BaseHeight + z < Noise[x + y * ChunkLineElements]) ChunkFields[Index] = 1;
+				else ChunkFields[Index] = 0;
 				
-				ChunkFields[Index] = (BaseHeight + z < Noise[x + y * ChunkLineElements]) ? 1 : 0;
+				//ChunkFields[Index] = (BaseHeight + z < Noise[x + y * ChunkLineElements]) ? 1 : 0;
 			}
 		}
 	}
@@ -77,15 +81,10 @@ void AVoxel::GenerateChunk()
 
 void AVoxel::UpdateProceduralMesh()
 {
-	TArray<FVector> Vertices;
-	TArray<int32> Triangles;
-	TArray<FVector> Normals;
-	TArray<FVector2D> UVs;
-	TArray<FColor> VertexColors;
-	TArray<FProcMeshTangent> Tangents;
-
-	int32 ElementID = 0;
-
+	TArray<FMeshSection> MeshSections;
+	MeshSections.SetNum(Materials.Num());
+	int ElementNumber { 0 };
+	
 	for(int32 x = 0; x < ChunkLineElements; ++x)
 	{
 		for(int32 y = 0; y < ChunkLineElements; ++y)
@@ -97,6 +96,14 @@ void AVoxel::UpdateProceduralMesh()
 				if(MeshIndex > 0)
 				{
 					MeshIndex--;
+					TArray<FVector>& Vertices = MeshSections[MeshIndex].Vertices;
+					TArray<int32>& Triangles = MeshSections[MeshIndex].Triangles;
+					TArray<FVector>& Normals = MeshSections[MeshIndex].Normals;
+					TArray<FVector2D>& UVs = MeshSections[MeshIndex].UVs;
+					TArray<FColor>& VertexColors = MeshSections[MeshIndex].VertexColors;
+					TArray<FProcMeshTangent>& Tangents = MeshSections[MeshIndex].Tangents;
+					const int32 ElementID = MeshSections[MeshIndex].ElementID;
+					
 					// Add faces, vertices, uvs and normals
 					int32 NbTriangles = 0;
 					for(int32 i =0; i < 6; ++i)
@@ -183,13 +190,24 @@ void AVoxel::UpdateProceduralMesh()
 							VertexColors.Add(Color);
 						}
 					}
-					ElementID += NbTriangles;
+					ElementNumber += NbTriangles;
+					MeshSections[MeshIndex].ElementID += NbTriangles;
 				}
 			}
 		}
 	}
+
 	ProceduralMeshComponent->ClearAllMeshSections();
-	ProceduralMeshComponent->CreateMeshSection(0, Vertices, Triangles, Normals, UVs, VertexColors, Tangents, true);
+	for(int i = 0; i < MeshSections.Num(); ++i)
+	{
+		const auto CurrentMeshSection = MeshSections[i];
+		if (CurrentMeshSection.Vertices.Num() > 0)
+		{
+			ProceduralMeshComponent->CreateMeshSection(0, CurrentMeshSection.Vertices, CurrentMeshSection.Triangles,
+				CurrentMeshSection.Normals, CurrentMeshSection.UVs, CurrentMeshSection.VertexColors,
+				CurrentMeshSection.Tangents, true);
+		}
+	}
 	
 	int MatIndex { 0 };
 	while (MatIndex < Materials.Num())
@@ -223,4 +241,25 @@ TArray<int32> AVoxel::ComputeChunkNoise() const
 	}
 	
 	return Noise;
+}
+
+void AVoxel::SetVoxel(FVector LocalPos, int32 ElementID)
+{
+	const int32 X = LocalPos.X / VoxelSize;
+	const int32 Y = LocalPos.Y / VoxelSize;
+	const int32 Z = LocalPos.Z / VoxelSize;
+	for(int Xi = X - 1; Xi < X + 2; ++Xi)
+	{
+		for(int Yi = Y - 1; Yi < Y + 2; ++Yi)
+		{
+			for(int Zi = Z - 1; Zi < Z + 2; ++Zi)
+			{
+				const int32 Index = Xi + Yi * ChunkLineElements + Zi * ChunkLineElementsP2;
+				ChunkFields[Index] = ElementID;
+			}
+		}
+	}
+	//const int32 Index = X + Y * ChunkLineElements + Z * ChunkLineElementsP2;
+	//ChunkFields[Index] = ElementID;
+	UpdateProceduralMesh();
 }

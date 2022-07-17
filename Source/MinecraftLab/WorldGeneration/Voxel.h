@@ -7,6 +7,17 @@
 #include "ProceduralMeshComponent.h"
 #include "Voxel.generated.h"
 
+struct FMeshSection
+{
+	TArray<FVector> Vertices;
+	TArray<int32> Triangles;
+	TArray<FVector> Normals;
+	TArray<FVector2D> UVs;
+	TArray<FColor> VertexColors;
+	TArray<FProcMeshTangent> Tangents;
+	int32 ElementID { 0 };
+};
+
 UCLASS()
 class MINECRAFTLAB_API AVoxel : public AActor
 {
@@ -109,4 +120,7 @@ public:
 	void UpdateProceduralMesh();
 	
 	TArray<int32> ComputeChunkNoise() const;
+
+	UFUNCTION(BlueprintCallable, Category="Voxel")
+	void SetVoxel(FVector LocalPos, int32 ElementID);
 };
