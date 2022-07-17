@@ -175,7 +175,8 @@ void AVoxel::UpdateProceduralMesh()
 							}
 							
 							UVs.Append(MeshUVs, UE_ARRAY_COUNT(MeshUVs));
-							FColor Color = FColor (255, 255, 255, 1);
+							// We'll use i as a marker in the material to tell the top side needs the top texture
+							FColor Color = FColor (255, 255, 255, i);
 							VertexColors.Add(Color);
 							VertexColors.Add(Color);
 							VertexColors.Add(Color);
@@ -189,6 +190,13 @@ void AVoxel::UpdateProceduralMesh()
 	}
 	ProceduralMeshComponent->ClearAllMeshSections();
 	ProceduralMeshComponent->CreateMeshSection(0, Vertices, Triangles, Normals, UVs, VertexColors, Tangents, true);
+	
+	int MatIndex { 0 };
+	while (MatIndex < Materials.Num())
+	{
+		ProceduralMeshComponent->SetMaterial(MatIndex, Materials[MatIndex]);
+		++MatIndex;
+	}
 }
 
 TArray<int32> AVoxel::ComputeChunkNoise() const
